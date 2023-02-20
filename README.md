@@ -8,18 +8,24 @@ This module set up a fully configurable reception pipeline:
 2. Trigger a lambda function, allowed to read & write that bucket
 3. Send a notification to a SNS topic.
 
-> One can only handle emails entitled to a verified domain identity
-
 ## Usage
 **Example**: Collect emails sent to `*@bot.my-domain.be`
+
+Also, look at the example Lambda code for reading messages, and dealing with attachments in S3
+* [in Python](./doc/lambda.py)
+* in Javascript (TODO)
+
 ```terraform
-module "gandi_ses" {
+# Domain identity must be validated before any reception to work
+# example here with Gandi registar dedicated module
+module "gandi_ses_verification" {
   source  = "git::https://github.com/raphaeljoie/terraform-aws-ses-gandi.git"
   
   domain = "my-domain.be"
   mail_from_subdomain = "mail"
 }
 
+# This module!
 module "ses_reception" {
   source  = "git::https://github.com/raphaeljoie/terraform-aws-ses-reception.git"
 
@@ -29,7 +35,8 @@ module "ses_reception" {
   subdmomain = "bot"
 }
 
-
+# pipe emails to reception pipeline. 
+# TODO add a `configure_route53` variable to include the resource
 resource "aws_route53_record" "redirection" {
   zone_id = data.aws_route53_zone.zone.id
   ttl = 600
